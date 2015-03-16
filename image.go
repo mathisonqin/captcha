@@ -6,6 +6,7 @@ package captcha
 
 import (
 	"bytes"
+	//"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -15,10 +16,11 @@ import (
 
 const (
 	// Standard width and height of a captcha image.
-	StdWidth  = 240
-	StdHeight = 80
+	StdWidth  = 130
+	StdHeight = 70
 	// Maximum absolute skew factor of a single digit.
-	maxSkew = 0.7
+	//maxSkew = 0.7
+	maxSkew = 0.1
 	// Number of background circles.
 	circleCount = 20
 )
@@ -33,13 +35,13 @@ type Image struct {
 
 // NewImage returns a new captcha image of the given width and height with the
 // given digits, where each digit must be in range 0-9.
-func NewImage(id string, digits []byte, width, height int) *Image {
+func NewImage(id string, digits []byte, width, height int, strikethrough, distort, fillCircle, fixColor bool) *Image {
 	m := new(Image)
 
 	// Initialize PRNG.
 	m.rng.Seed(deriveSeed(imageSeedPurpose, id, digits))
 
-	m.Paletted = image.NewPaletted(image.Rect(0, 0, width, height), m.getRandomPalette())
+	m.Paletted = image.NewPaletted(image.Rect(0, 0, width, height), m.getRandomPalette(fixColor))
 	m.calculateSizes(width, height, len(digits))
 	// Randomly position captcha inside the image.
 	maxx := width - (m.numWidth+m.dotSize)*len(digits) - m.dotSize
@@ -58,24 +60,41 @@ func NewImage(id string, digits []byte, width, height int) *Image {
 		x += m.numWidth + m.dotSize
 	}
 	// Draw strike-through line.
-	m.strikeThrough()
+	if strikethrough == true {
+		m.strikeThrough()
+		//m.strikeThrough()
+	}
 	// Apply wave distortion.
-	m.distort(m.rng.Float(5, 10), m.rng.Float(100, 200))
+	if distort == true {
+		m.distort(m.rng.Float(5, 10), m.rng.Float(100, 200))
+	}
 	// Fill image with random circles.
-	m.fillWithCircles(circleCount, m.dotSize)
+	if fillCircle == true {
+		m.fillWithCircles(circleCount, m.dotSize)
+	}
 	return m
 }
 
-func (m *Image) getRandomPalette() color.Palette {
+func (m *Image) getRandomPalette(fixColor bool) color.Palette {
 	p := make([]color.Color, circleCount+1)
 	// Transparent color.
 	p[0] = color.RGBA{0xFF, 0xFF, 0xFF, 0x00}
 	// Primary color.
-	prim := color.RGBA{
-		uint8(m.rng.Intn(129)),
-		uint8(m.rng.Intn(129)),
-		uint8(m.rng.Intn(129)),
-		0xFF,
+	var prim color.RGBA
+	if fixColor == true {
+		prim = color.RGBA{
+			uint8(0),
+			uint8(0),
+			uint8(0),
+			0xFF,
+		}
+	} else {
+		prim = color.RGBA{
+			uint8(m.rng.Intn(256)),
+			uint8(m.rng.Intn(256)),
+			uint8(m.rng.Intn(256)),
+			0xFF,
+		}
 	}
 	p[1] = prim
 	// Circle colors.

@@ -57,7 +57,7 @@ func deriveSeed(purpose byte, id string, digits []byte) (out [16]byte) {
 // pseudorandom numbers in range 0-9. The slice can be used as a captcha
 // solution.
 func RandomDigits(length int) []byte {
-	return randomBytesMod(length, 10)
+	return randomBytesMod(length, 36)
 }
 
 // randomBytes returns a byte slice of the given length read from CSPRNG.
@@ -78,7 +78,7 @@ func randomBytesMod(length int, mod byte) (b []byte) {
 	for {
 		r := randomBytes(length + (length / 4))
 		for _, c := range r {
-			if c > maxrb {
+			if c >= maxrb {
 				// Skip this number to avoid modulo bias.
 				continue
 			}
@@ -89,6 +89,7 @@ func randomBytesMod(length int, mod byte) (b []byte) {
 			}
 		}
 	}
+	panic("unreachable")
 }
 
 // randomId returns a new random id string.

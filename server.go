@@ -51,7 +51,7 @@ func (h *captchaHandler) serve(w http.ResponseWriter, id, ext string, lang strin
 		if !download {
 			w.Header().Set("Content-Type", "image/png")
 		}
-		return WriteImage(w, id, h.imgWidth, h.imgHeight)
+		return WriteImage(w, id, h.imgWidth, h.imgHeight, true)
 	case ".wav":
 		//XXX(dchest) Workaround for Chrome: it wants content-length,
 		//or else will start playing NOT from the beginning.

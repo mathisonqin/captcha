@@ -81,7 +81,10 @@ func (s *memoryStore) Get(id string, clear bool) (digits []byte) {
 		s.Lock()
 		defer s.Unlock()
 	}
-	digits, ok := s.digitsById[id]
+	storeDigits, ok := s.digitsById[id]
+	lenD := len(storeDigits)
+	digits = make([]byte, lenD)
+	copy(digits, storeDigits)
 	if !ok {
 		return
 	}
